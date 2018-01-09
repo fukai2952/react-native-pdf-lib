@@ -46,7 +46,7 @@ public class PDFLibModule extends ReactContextBaseJavaModule {
   @ReactMethod
   public void createPDF(ReadableMap documentActions, Promise promise) {
     try {
-      PDDocument document = PDDocumentFactory.create(documentActions);
+      PDDocument document = PDDocumentFactory.create(reactContext,documentActions);
       promise.resolve(PDDocumentFactory.write(document, documentActions.getString("path")));
     } catch (NoSuchKeyException e) {
       e.printStackTrace();
@@ -60,7 +60,7 @@ public class PDFLibModule extends ReactContextBaseJavaModule {
   @ReactMethod
   public void modifyPDF(ReadableMap documentActions, Promise promise) {
     try {
-      PDDocument document = PDDocumentFactory.modify(documentActions);
+      PDDocument document = PDDocumentFactory.modify(reactContext,documentActions);
       promise.resolve(PDDocumentFactory.write(document, documentActions.getString("path")));
     } catch (NoSuchKeyException e) {
       e.printStackTrace();

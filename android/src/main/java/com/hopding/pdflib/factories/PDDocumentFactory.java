@@ -1,6 +1,7 @@
 package com.hopding.pdflib.factories;
 
 import com.facebook.react.bridge.NoSuchKeyException;
+import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.tom_roush.pdfbox.pdmodel.PDDocument;
@@ -25,35 +26,35 @@ public class PDDocumentFactory {
     }
 
             /* ----- Factory methods ----- */
-    public static PDDocument create(ReadableMap documentActions) throws NoSuchKeyException, IOException {
+    public static PDDocument create(ReactApplicationContext reactContext,ReadableMap documentActions) throws NoSuchKeyException, IOException {
         PDDocument document = new PDDocument();
         PDDocumentFactory factory = new PDDocumentFactory(document, documentActions);
 
-        factory.addPages(documentActions.getArray("pages"));
+        factory.addPages(reactContext,documentActions.getArray("pages"));
         return document;
     }
 
-    public static PDDocument modify(ReadableMap documentActions) throws NoSuchKeyException, IOException {
+    public static PDDocument modify(ReactApplicationContext reactContext,ReadableMap documentActions) throws NoSuchKeyException, IOException {
         String path = documentActions.getString("path");
         PDDocument document = PDDocument.load(new File(path));
         PDDocumentFactory factory = new PDDocumentFactory(document, documentActions);
 
-        factory.modifyPages(documentActions.getArray("modifyPages"));
-        factory.addPages(documentActions.getArray("pages"));
+        factory.modifyPages(reactContext,documentActions.getArray("modifyPages"));
+        factory.addPages(reactContext,documentActions.getArray("pages"));
         return document;
     }
 
             /* ----- Document actions (based on JSON structures sent over bridge) ----- */
-    private void addPages(ReadableArray pages) throws IOException {
+    private void addPages(ReactApplicationContext reactContext,ReadableArray pages) throws IOException {
         for(int i = 0; i < pages.size(); i++) {
-            PDPage page = PDPageFactory.create(document, pages.getMap(i));
+            PDPage page = PDPageFactory.create(reactContext,document, pages.getMap(i));
             document.addPage(page);
         }
     }
 
-    private void modifyPages(ReadableArray pages) throws IOException {
+    private void modifyPages(ReactApplicationContext reactContext, ReadableArray pages) throws IOException {
         for(int i = 0; i < pages.size(); i++) {
-            PDPageFactory.modify(document, pages.getMap(i));
+            PDPageFactory.modify(reactContext,document, pages.getMap(i));
         }
     }
 

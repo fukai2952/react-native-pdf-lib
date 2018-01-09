@@ -1,17 +1,22 @@
 package com.hopding.pdflib.factories;
 
+import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.support.annotation.RequiresPermission;
 
 import com.facebook.imagepipeline.core.ImagePipelineFactory;
 import com.facebook.react.bridge.NoSuchKeyException;
+import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
+import com.hopding.pdflib.PDFLibModule;
 import com.tom_roush.pdfbox.pdmodel.PDDocument;
 import com.tom_roush.pdfbox.pdmodel.PDPage;
 import com.tom_roush.pdfbox.pdmodel.PDPageContentStream;
 import com.tom_roush.pdfbox.pdmodel.common.PDRectangle;
+import com.tom_roush.pdfbox.pdmodel.font.PDFont;
+import com.tom_roush.pdfbox.pdmodel.font.PDType0Font;
 import com.tom_roush.pdfbox.pdmodel.font.PDType1Font;
 import com.tom_roush.pdfbox.pdmodel.graphics.image.JPEGFactory;
 import com.tom_roush.pdfbox.pdmodel.graphics.image.LosslessFactory;
@@ -40,35 +45,39 @@ class PDPageFactory {
     }
 
             /* ----- Factory methods ----- */
-    protected static PDPage create(PDDocument document, ReadableMap pageActions) throws IOException {
+    protected static PDPage create(ReactApplicationContext reactContext,PDDocument document, ReadableMap pageActions) throws IOException {
         PDPage page = new PDPage();
         PDPageFactory factory = new PDPageFactory(document, page, false);
 
         factory.setMediaBox(pageActions.getMap("mediaBox"));
-        factory.applyActions(pageActions);
+        factory.applyActions(reactContext,pageActions);
         factory.stream.close();
         return page;
     }
 
-    protected static PDPage modify(PDDocument document, ReadableMap pageActions) throws IOException {
+    protected static PDPage modify(ReactApplicationContext reactContext,PDDocument document, ReadableMap pageActions) throws IOException {
         int pageIndex = pageActions.getInt("pageIndex");
         PDPage page   = document.getPage(pageIndex);
         PDPageFactory factory = new PDPageFactory(document, page, true);
 
-        factory.applyActions(pageActions);
+        factory.applyActions(reactContext,pageActions);
         factory.stream.close();
         return page;
     }
 
             /* ----- Page actions (based on JSON structures sent over bridge) ----- */
-    private void applyActions(ReadableMap pageActions) throws IOException {
+    private void applyActions(ReactApplicationContext reactContext,ReadableMap pageActions) throws IOException {
+        AssetManager assetManager = reactContext.getAssets();
+
+        PDFont pdfFont = PDType0Font.load(document, assetManager.open("SimSun-01.ttf"));
+
         ReadableArray actions = pageActions.getArray("actions");
         for(int i = 0; i < actions.size(); i++) {
             ReadableMap action = actions.getMap(i);
             String type = action.getString("type");
 
             if (type.equals("text"))
-                this.drawText(action);
+                this.drawText(pdfFont,action);
             else if (type.equals("rectangle"))
                 this.drawRectangle(action);
             else if (type.equals("image"))
@@ -82,7 +91,8 @@ class PDPageFactory {
         page.setMediaBox(new PDRectangle(coords[0], coords[1], dims[0], dims[1]));
     }
 
-    private void drawText(ReadableMap textActions) throws NoSuchKeyException, IOException {
+
+    private void drawText(PDFont pdfFont,ReadableMap textActions) throws NoSuchKeyException, IOException {
         String value = textActions.getString("value");
         int fontSize = textActions.getInt("fontSize");
 
@@ -91,7 +101,7 @@ class PDPageFactory {
 
         stream.beginText();
         stream.setNonStrokingColor(rgbColor[0], rgbColor[1], rgbColor[2]);
-        stream.setFont(PDType1Font.TIMES_ROMAN, fontSize);
+        stream.setFont(pdfFont, fontSize);
         stream.newLineAtOffset(coords[0], coords[1]);
         stream.showText(value);
         stream.endText();
