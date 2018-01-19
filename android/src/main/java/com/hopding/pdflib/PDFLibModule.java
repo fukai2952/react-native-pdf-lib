@@ -72,6 +72,20 @@ public class PDFLibModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
+  public void fillPdfAssetForm(ReadableMap documentActions, Promise promise)
+  {
+    try {
+      String path = PDFormFiller.fillForm(reactContext,documentActions);
+      promise.resolve(path);
+    } catch (NoSuchKeyException e) {
+      e.printStackTrace();
+      promise.reject(e);
+    }
+
+  }
+
+
+  @ReactMethod
   public void test(String text, Promise promise) {
     File dir = new File(reactContext.getFilesDir().getPath() + "/pdfs");
     dir.mkdirs();

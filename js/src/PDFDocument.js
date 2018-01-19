@@ -98,4 +98,7 @@ export default class PDFDocument {
     }
     return PDFLib.createPDF(this.document);
   }
+  static fillAssetForm=(form,path,fields)=>{
+        return PDFLib.fillPdfAssetForm({form,path,fields});
+  }
 }
