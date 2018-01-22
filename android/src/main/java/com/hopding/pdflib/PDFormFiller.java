@@ -6,6 +6,7 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReadableMap;
 
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
+import com.facebook.react.bridge.ReadableType;
 import com.itextpdf.text.pdf.PdfAcroForm;
 import com.itextpdf.text.Document;
 
@@ -19,6 +20,8 @@ import com.itextpdf.text.pdf.BaseFont;
 import com.itextpdf.text.pdf.TextField;
 
 import java.io.FileOutputStream;
+
+import com.facebook.react.bridge.ReadableType;
 
 //import com.itextpdf.text.pdf
 
@@ -55,7 +58,18 @@ public class PDFormFiller {
                 String key = it.nextKey();
                // if(key.equals("USRNAM"))
                      form.setFieldProperty(key,"textfont",bfChinese,null);
-                form.setField(key, fileds.getString(key));
+                ReadableType type =  fileds.getType(key);
+                Object val = null;
+                switch (type)
+                {
+                    case Array:val=fileds.getArray(key);break;
+                    case Boolean:val=fileds.getBoolean(key);break;
+                    case Map:val=fileds.getMap(key);break;
+                    case String:val=fileds.getString(key);break;
+                    case Number:val=fileds.getDouble(key);break;
+                    case Null:val=fileds.getString(key);break;
+                }
+                form.setField(key, val.toString());
             }
 
             stamper.close();
